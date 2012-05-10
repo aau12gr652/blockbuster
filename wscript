@@ -73,6 +73,7 @@ def build(bld):
     		source	= [ os.path.join('..','server','kodo_encoder.cpp'), 
     				os.path.join('..','node','kodo_decoder.cpp'),
     				os.path.join('..','postoffice','Postoffice.cpp'),
+    				os.path.join('..','serializer','serializer.cpp'),
     				'blockbuster.cpp'],
     		includes = ['..', '/home/jeppe/git/steinwurf/external-ffmpeg/ffmpeg'],
     		defines = '__STDC_CONSTANT_MACROS',    				

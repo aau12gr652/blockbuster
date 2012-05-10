@@ -13,8 +13,6 @@ extern "C" {
 #include <postoffice/Postoffice.h>
 #include <serializer/serializer.hpp>
 
-
-
 #include <vector>
 #include <utility>
 #include <stdlib.h>

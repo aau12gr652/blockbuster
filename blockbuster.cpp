@@ -145,6 +145,7 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 m_kodo_encoder->set_symbol_size(symbol_size);
 
                 m_kodo_encoder->new_generation((char*)&serialized_buffer[0]);
+                std::cout << "Passed generation to decoder.\n";
                 // End of passing to kodo encoder, now what?
 
                 // Pass to kodo encoder:
