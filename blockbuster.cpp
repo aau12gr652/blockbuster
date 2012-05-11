@@ -142,9 +142,12 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 uint32_t bufferlength = serialized_buffer.size();
 
                 uint32_t gsize = calculate_generation_size_from_gop_size(bufferlength); //std::ceil( bufferlength/(float)symbol_size );
-                uint32_t symb_size = calculate_symbol_size_from_generation_size()
-                std::cout << "3 " << gsize << std::endl;
-                uint32_t zeropadding_length = symbol_size*gsize - bufferlength;
+                uint32_t symb_size = calculate_symbol_size_from_generation_size(gsize);
+
+                std::cout << "symb_size*gize and bufferlength"
+
+                assert(symb_size*gsize >= bufferlength);
+                uint32_t zeropadding_length = symb_size*gsize - bufferlength;
                 std::vector<uint8_t> zeropadding(zeropadding_length);
                 serialized_buffer.insert(serialized_buffer.end(),zeropadding.begin(),zeropadding.end());
 
@@ -156,12 +159,12 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 m_kodo_encoder->set_layer_size(1,gsize);
                 m_kodo_encoder->set_layer_gamma(1,100);
 //                m_kodo_encoder->set_layer_gamma(2,100);
-                m_kodo_encoder->set_symbol_size(symbol_size);
+                m_kodo_encoder->set_symbol_size(symb_size);
                 m_kodo_encoder->new_generation((char*)&serialized_buffer[0]);
 //                std::cout << "Passed generation to encoder. Now what?\n";
                 // End of passing to kodo encoder, now what?
 
-                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symbol_size, gsize, 2 );
+                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 2 );
 //                std::cout << "created thread to transmit encoded packets\n";
 
                 // Pass to kodo encoder:
