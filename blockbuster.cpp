@@ -144,7 +144,7 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 uint32_t gsize = calculate_generation_size_from_gop_size(bufferlength); //std::ceil( bufferlength/(float)symbol_size );
                 uint32_t symb_size = calculate_symbol_size_from_generation_size(gsize);
 
-                std::cout << "symb_size*gize and bufferlength"
+                std::cout << "symb_size*gize and bufferlength";
 
                 assert(symb_size*gsize >= bufferlength);
                 uint32_t zeropadding_length = symb_size*gsize - bufferlength;
