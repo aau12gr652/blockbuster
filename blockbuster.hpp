@@ -20,8 +20,9 @@ extern "C" {
 #include <cmath>
 #include <assert.h>
 #include <boost/signals2.hpp>
+#include <boost/thread.hpp>
 
-class blockbuster // : public PostOffice
+class blockbuster
 {
 private:
     postoffice *benjamin_krebs;
@@ -32,21 +33,35 @@ private:
     std::vector<uint32_t> serialized_buffer_table;
 
     bool inbound;
+    bool mailbox_active;
+
+    boost::thread transmission_thread;
+    boost::thread mailboxthread;
 
     uint32_t layers;
     uint32_t field_size;
     uint32_t generation_size;
     uint32_t symbol_size;
+    uint32_t max_packet_size;
     std::vector<uint32_t> layer_sizes;
 
     void serialize_avpacket(AVPacket* pkt); // Takes an avpacket and treats it with care and respect, before serializing it with a bunch of other avpackets.
     void make_avpacket(uint8_t*, uint32_t);
+
+    uint32_t calculate_generation_size_from_gop_size(uint32_t gop_size);
+    uint32_t calculate_symbol_size_from_generation_size(uint32_t generation_size);
 
 public:
 
     blockbuster(bool);
     ~blockbuster();
     boost::signals2::signal<void (AVPacket*)> signal_new_avpacket;
+
+    void mailbox_thread();
+    void disconnect();
+    void connect_to_stream();
+
+    void transmit_generation(uint32_t,uint32_t,float);
 
     void prepare_for_kodo_encoder(AVPacket*);
 
