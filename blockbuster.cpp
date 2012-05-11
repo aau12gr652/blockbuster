@@ -144,15 +144,14 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 uint32_t gsize = calculate_generation_size_from_gop_size(bufferlength); //std::ceil( bufferlength/(float)symbol_size );
                 uint32_t symb_size = calculate_symbol_size_from_generation_size(gsize);
 
-                std::cout << "symb_size*gize and bufferlength";
+//                std::cout << "symb_size*gsize and bufferlength: " << symb_size << " " << gsize << " " << symb_size*gsize << " and " << bufferlength << std::endl;
 
                 assert(symb_size*gsize >= bufferlength);
                 uint32_t zeropadding_length = symb_size*gsize - bufferlength;
                 std::vector<uint8_t> zeropadding(zeropadding_length);
                 serialized_buffer.insert(serialized_buffer.end(),zeropadding.begin(),zeropadding.end());
-
                 // Check the length:
-                assert(serialized_buffer.size()==symbol_size*gsize);
+                assert(serialized_buffer.size()==symb_size*gsize);
                 m_kodo_encoder->set_layers(1);
                 m_kodo_encoder->set_generation_size(gsize);
 //                m_kodo_encoder->set_layer_size(1,serialized_buffer_table[1]);
@@ -263,7 +262,7 @@ void blockbuster::transmit_generation(uint32_t symb_size, uint32_t gen_size, flo
 
 uint32_t blockbuster::calculate_generation_size_from_gop_size(uint32_t gop_size)
 {
-    return 4*max_packet_size-2*sqrt(4*(max_packet_size*max_packet_size)-2*gop_size);
+    return std::ceil(4*max_packet_size-2*sqrt(4*(max_packet_size*max_packet_size)-2*gop_size) );
 }
 uint32_t blockbuster::calculate_symbol_size_from_generation_size(uint32_t generation_size)
 {
