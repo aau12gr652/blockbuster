@@ -162,7 +162,7 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
 //                std::cout << "Passed generation to encoder. Now what?\n";
                 // End of passing to kodo encoder, now what?
 
-                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.3 );
+                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.05 );
 //                std::cout << "created thread to transmit encoded packets\n";
 
                 // Pass to kodo encoder:
@@ -219,6 +219,7 @@ void blockbuster::mailbox_thread()
 //        std::cout << "received packet w. size " << received_data->size << std::endl;
         received_data.data = data_array;
 //        std::cout << "passing to decoder... \n";
+        if (m_kodo_decoder->get_current_generation_id() != hdr->Generation_ID && !m_kodo_decoder->has_finished_decoding()) std::cout << "failed to decode generation " << m_kodo_decoder->get_current_generation_id() << std::endl;
         if (hdr->Generation_ID != decoded_generation) decode_return = m_kodo_decoder->decode(hdr,received_data);
 //        std::cout << "decoder returned\n";
         if(m_kodo_decoder->has_finished_decoding() && m_kodo_decoder->get_current_generation_id() != decoded_generation)
@@ -228,7 +229,7 @@ void blockbuster::mailbox_thread()
 //            m_serializer->deserialize_signal((uint8_t*)received_data->data, received_data->size);
             m_serializer->deserialize_signal(decode_return);
             decoded_generation = m_kodo_decoder->get_current_generation_id();
-        }
+        } 
     }
 
     // receive from postoffice
