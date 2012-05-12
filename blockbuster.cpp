@@ -36,7 +36,7 @@ void blockbuster::serialize_avpacket(AVPacket *pkt)
 void blockbuster::make_avpacket(uint8_t* ptr, uint32_t size)
 {
     AVPacket new_avpacket;
-    std::cout << "blockbuster::make_avpacket - creating av_packet\n";
+//    std::cout << "blockbuster::make_avpacket - creating av_packet\n";
     av_init_packet(&new_avpacket);
     new_avpacket.size = size;
     new_avpacket.data = (uint8_t*)av_malloc(size);
@@ -163,7 +163,7 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
 //                std::cout << "Passed generation to encoder. Now what?\n";
                 // End of passing to kodo encoder, now what?
 
-                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 2 );
+                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.3 );
 //                std::cout << "created thread to transmit encoded packets\n";
 
                 // Pass to kodo encoder:
