@@ -223,7 +223,8 @@ void blockbuster::mailbox_thread()
 //        std::cout << "decoder returned\n";
         if(m_kodo_decoder->has_finished_decoding() && m_kodo_decoder->get_current_generation_id() != decoded_generation)
         {
-            std::cout << "Decoder finished layer: " << m_kodo_decoder->has_finished_decoding()*1 << std::endl;
+            std::cout << "Decoder finished layer: " << m_kodo_decoder->has_finished_decoding()*1;
+            std::cout << " Gopsize: " << hdr->Generation_Size << " (symbols) Symbolsize: " << hdr->Symbol_Size << std::endl;
 //            m_serializer->deserialize_signal((uint8_t*)received_data->data, received_data->size);
             m_serializer->deserialize_signal(decode_return);
             decoded_generation = m_kodo_decoder->get_current_generation_id();
