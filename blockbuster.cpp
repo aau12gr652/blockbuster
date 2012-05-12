@@ -199,7 +199,8 @@ void blockbuster::mailbox_thread()
     mailbox_active = true;
     stamp *hdr = (stamp*)malloc(sizeof(stamp));
     int decoded_generation = 0;
-    serial_data *received_data = (serial_data*) malloc(sizeof(serial_data));
+//    serial_data *received_data = (serial_data*) malloc(sizeof(serial_data));
+    serial_data received_data; // = (serial_data*) malloc(sizeof(serial_data));
     m_kodo_decoder->status_output = false;
     int data_array_size = 2000;
     char data_array[data_array_size];
@@ -209,20 +210,20 @@ void blockbuster::mailbox_thread()
     {
         if (!mailbox_active) break;
 //        std::cout << "Waiting for packet...\n";
-        received_data->size = benjamin_krebs->receive(data_array, hdr); //timeout 1s
-        if(!received_data->size)
+        received_data.size = benjamin_krebs->receive(data_array, hdr); //timeout 1s
+        if(!received_data.size)
         {
-            boost::this_thread::sleep(boost::posix_time::milliseconds(1000) );
+            boost::this_thread::sleep(boost::posix_time::milliseconds(100) );
             continue;
         }
 //        std::cout << "received packet w. size " << received_data->size << std::endl;
-        received_data->data = data_array;
+        received_data.data = data_array;
 //        std::cout << "passing to decoder... \n";
-        decode_return = m_kodo_decoder->decode(hdr,*received_data);
+        if (hdr->Generation_ID != decoded_generation) decode_return = m_kodo_decoder->decode(hdr,received_data);
 //        std::cout << "decoder returned\n";
         if(m_kodo_decoder->has_finished_decoding() && m_kodo_decoder->get_current_generation_id() != decoded_generation)
         {
-//            std::cout << "Decoder finished layer: " << m_kodo_decoder->has_finished_decoding()*1 << std::endl;
+            std::cout << "Decoder finished layer: " << m_kodo_decoder->has_finished_decoding()*1 << std::endl;
 //            m_serializer->deserialize_signal((uint8_t*)received_data->data, received_data->size);
             m_serializer->deserialize_signal(decode_return);
             decoded_generation = m_kodo_decoder->get_current_generation_id();
