@@ -6,7 +6,7 @@ blockbuster::blockbuster(bool inbound)
     {
         m_kodo_decoder = new kodo_decoder();
         benjamin_krebs = new postoffice("11000",1);
-        benjamin_krebs->startThread();
+//        benjamin_krebs->startThread();
     }
     else {
         m_kodo_encoder = new kodo_encoder();
@@ -16,14 +16,22 @@ blockbuster::blockbuster(bool inbound)
     m_serializer = new serializer();
     m_serializer->signal_new_buffer.connect( boost::bind( &blockbuster::make_avpacket, this,_1,_2) );
 
-
-    symbol_size = 1282;
-    layers = 2;
     max_packet_size = 1450;
 }
 
 blockbuster::~blockbuster()
 {
+    if(inbound)
+    {
+        disconnect();
+        delete m_kodo_decoder;
+    }
+    else
+    {
+        delete m_kodo_encoder;
+    }
+    delete benjamin_krebs;
+    delete m_serializer;
 }
 
 void blockbuster::serialize_avpacket(AVPacket *pkt)
@@ -162,6 +170,7 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
 //                std::cout << "Passed generation to encoder. Now what?\n";
                 // End of passing to kodo encoder, now what?
 
+                std::cout << "transmitting generation w ID: "<< 1*m_kodo_encoder->payload_stamp.Generation_ID << std::endl;
                 transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.05 );
 //                std::cout << "created thread to transmit encoded packets\n";
 
@@ -199,16 +208,14 @@ void blockbuster::mailbox_thread()
     mailbox_active = true;
     stamp *hdr = (stamp*)malloc(sizeof(stamp));
     int decoded_generation = 0;
-//    serial_data *received_data = (serial_data*) malloc(sizeof(serial_data));
     serial_data received_data; // = (serial_data*) malloc(sizeof(serial_data));
     m_kodo_decoder->status_output = false;
     int data_array_size = 2000;
     char data_array[data_array_size];
     std::vector<uint8_t> decode_return;
     ////////////// NEED WAY TO STOP THIS SHIT!!
-    for(;;)
+    while(mailbox_active)
     {
-        if (!mailbox_active) break;
 //        std::cout << "Waiting for packet...\n";
         received_data.size = benjamin_krebs->receive(data_array, hdr); //timeout 1s
         if(!received_data.size)
@@ -216,28 +223,17 @@ void blockbuster::mailbox_thread()
             boost::this_thread::sleep(boost::posix_time::milliseconds(100) );
             continue;
         }
-//        std::cout << "received packet w. size " << received_data->size << std::endl;
         received_data.data = data_array;
-//        std::cout << "passing to decoder... \n";
-        if (m_kodo_decoder->get_current_generation_id() != hdr->Generation_ID && !m_kodo_decoder->has_finished_decoding()) std::cout << "failed to decode generation " << m_kodo_decoder->get_current_generation_id() << std::endl;
+        if (m_kodo_decoder->get_current_generation_id() != hdr->Generation_ID && !m_kodo_decoder->has_finished_decoding()) std::cout << "failed to decode generation " << m_kodo_decoder->get_current_generation_id()*1 << std::endl;
         if (hdr->Generation_ID != decoded_generation) decode_return = m_kodo_decoder->decode(hdr,received_data);
-//        std::cout << "decoder returned\n";
         if(m_kodo_decoder->has_finished_decoding() && m_kodo_decoder->get_current_generation_id() != decoded_generation)
         {
             std::cout << "Decoder finished layer: " << m_kodo_decoder->has_finished_decoding()*1;
             std::cout << " Gopsize: " << hdr->Generation_Size << " (symbols) Symbolsize: " << hdr->Symbol_Size << std::endl;
-//            m_serializer->deserialize_signal((uint8_t*)received_data->data, received_data->size);
             m_serializer->deserialize_signal(decode_return);
             decoded_generation = m_kodo_decoder->get_current_generation_id();
         } 
     }
-
-    // receive from postoffice
-    // pass to decoder
-    // decode
-    // check if finished
-    // if finished -> pass to deserializer
-    //
 }
 
 void blockbuster::transmit_generation(uint32_t symb_size, uint32_t gen_size, float overhead)
