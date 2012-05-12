@@ -138,7 +138,6 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
 
                 std::vector<uint8_t>& serialized_buffer = m_serializer->serialize();
                 // Pass this buffer to kodo encoder. ALONG with other info. Will this buffer be deleted when serializer resets or program goes out of scope?
-                m_kodo_encoder->set_layers(layers);
                 uint32_t bufferlength = serialized_buffer.size();
 
                 uint32_t gsize = calculate_generation_size_from_gop_size(bufferlength); //std::ceil( bufferlength/(float)symbol_size );
