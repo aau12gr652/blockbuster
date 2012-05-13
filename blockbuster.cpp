@@ -159,19 +159,25 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 serialized_buffer.insert(serialized_buffer.end(),zeropadding.begin(),zeropadding.end());
                 // Check the length:
                 assert(serialized_buffer.size()==symb_size*gsize);
-                m_kodo_encoder->set_layers(1);
+                m_kodo_encoder->set_layers(3);
                 m_kodo_encoder->set_generation_size(gsize);
-//                m_kodo_encoder->set_layer_size(1,serialized_buffer_table[1]);
-                m_kodo_encoder->set_layer_size(1,gsize);
-                m_kodo_encoder->set_layer_gamma(1,100);
-//                m_kodo_encoder->set_layer_gamma(2,100);
+
+                uint32_t first_layer = std::ceil(serialized_buffer_table[1]/(float)symb_size);
+
+                m_kodo_encoder->set_layer_size(1,first_layer);
+                m_kodo_encoder->set_layer_size(2,gsize-1);
+                m_kodo_encoder->set_layer_size(3,gsize);
+                m_kodo_encoder->set_layer_gamma(1,5);
+                m_kodo_encoder->set_layer_gamma(2,10);
+                m_kodo_encoder->set_layer_gamma(3,100);
                 m_kodo_encoder->set_symbol_size(symb_size);
+//                make_layers(3,gsize,symb_size);
                 m_kodo_encoder->new_generation((char*)&serialized_buffer[0]);
 //                std::cout << "Passed generation to encoder. Now what?\n";
                 // End of passing to kodo encoder, now what?
 
                 std::cout << "transmitting generation w ID: "<< 1*m_kodo_encoder->payload_stamp.Generation_ID << std::endl;
-                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.05 );
+                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.50 );
 //                std::cout << "created thread to transmit encoded packets\n";
 
                 // Pass to kodo encoder:
@@ -181,12 +187,42 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
         }
         serialize_avpacket(pkt);
     }
-//    Look in packet, see if KEYFrame.
-//    If keyframe and already data, serialize old data and pass to encoder along with information about number of layers, size of layers, field size, generation size, symbol size along with info on how to seperate layers.
-//    Reset serializer with size of old data.
 //    pass frame to serializer.
 //    Keep track of how to do UEP on the vector (Where to split the shit in windows)
+}
 
+void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_size)
+{
+    m_kodo_encoder->set_generation_size(gsize);
+    m_kodo_encoder->set_symbol_size(symb_size);
+
+    uint32_t first_layer;
+    first_layer = std::ceil(serialized_buffer_table[1]/(float)symb_size);
+    if (first_layer > gsize)
+    {
+        first_layer = gsize;
+        nb_layers = 1;
+    }
+    m_kodo_encoder->set_layers(nb_layers);
+
+    uint32_t first_gamma = std::ceil(first_layer*100/(float)gsize);
+    m_kodo_encoder->set_layer_size(1,first_layer);
+    m_kodo_encoder->set_layer_gamma(1,first_gamma);
+
+    std::cout << "First layer: " << first_layer;
+
+    uint32_t p_layer_size = std::ceil( (gsize-first_layer)/(float)(nb_layers-1) );
+    for (uint32_t layer = 2; layer < nb_layers ; layer++)
+    {
+        uint32_t this_layer_size = p_layer_size*(layer-1)+first_layer;
+        std::cout << " Layer: " << layer << " has size: " << this_layer_size;
+        m_kodo_encoder->set_layer_size(layer,  this_layer_size  );
+        m_kodo_encoder->set_layer_gamma(layer, std::ceil(this_layer_size*100/(float)gsize) );
+    }
+    std::cout << " gsize: " << gsize << std::endl;
+    m_kodo_encoder->set_layer_size(nb_layers,gsize);
+    m_kodo_encoder->set_layer_gamma(nb_layers,100);
+//    set_layer_gamma(1,50);
 }
 
 void blockbuster::connect_to_stream()
@@ -245,7 +281,7 @@ void blockbuster::transmit_generation(uint32_t symb_size, uint32_t gen_size, flo
 //        std::cout << "sending packet...\n";
 //        int retval = m_kodo_encoder->send_packet(*benjamin_krebs);
 //        std::cout << "getting packet...\n";
-        serial_data packet = m_kodo_encoder->get_packet(1);
+        serial_data packet = m_kodo_encoder->get_packet();
 //        std::cout << "got packet...\n";
         int return_value = benjamin_krebs->send(packet, &(m_kodo_encoder->payload_stamp));
             if (return_value)

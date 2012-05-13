@@ -47,6 +47,7 @@ private:
 
     void serialize_avpacket(AVPacket* pkt); // Takes an avpacket and treats it with care and respect, before serializing it with a bunch of other avpackets.
     void make_avpacket(uint8_t*, uint32_t);
+    void make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_size);
 
     uint32_t calculate_generation_size_from_gop_size(uint32_t gop_size);
     uint32_t calculate_symbol_size_from_generation_size(uint32_t generation_size);
