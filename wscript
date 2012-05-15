@@ -3,7 +3,7 @@
 
 import os
 
-# Necessary since we override different Contexts 
+# Necessary since we override different Contexts
 import waflib.extras.wurftools as wt
 
 LIBNAME = 'libblockbuster'
@@ -47,8 +47,8 @@ def configure(conf):
     load_helper(conf, 'boost')
     load_helper(conf, 'kodo')
     load_helper(conf, 'gtest')
-   
- 
+
+
 def build(bld):
 
     load_helper(bld, 'sak')
@@ -63,6 +63,10 @@ def build(bld):
         cxxflags += ['-O2', '-g', '-ftree-vectorize',
                      '-Wextra', '-Wall']
 
+    if bld.env.TOOLCHAIN == 'darwin':
+        cxxflags += ['-O2', '-g', '-ftree-vectorize',
+                     '-Wextra', '-Wall']
+
     if bld.env.TOOLCHAIN == 'win32':
         cxxflags += ['/O2', '/Ob2', '/W3', '/EHsc']
 
@@ -70,23 +74,23 @@ def build(bld):
 
     bld.stlib(features = 'cxx',
     		target	= 'blockbuster',
-    		source	= [ os.path.join('..','server','kodo_encoder.cpp'), 
+    		source	= [ os.path.join('..','server','kodo_encoder.cpp'),
     				os.path.join('..','node','kodo_decoder.cpp'),
     				os.path.join('..','postoffice','Postoffice.cpp'),
     				os.path.join('..','serializer','serializer.cpp'),
     				'blockbuster.cpp'],
-    		includes = ['..', '/home/jeppe/git/steinwurf/external-ffmpeg/ffmpeg'],
-    		defines = '__STDC_CONSTANT_MACROS',    				
+    		includes = ['..', '../external-ffmpeg/ffmpeg'],
+    		defines = '__STDC_CONSTANT_MACROS',
     		cxxflags = cxxflags,
     		use	= [ 'kodo_includes', 'boost_includes',
     				'fifi_includes', 'sak_includes'])
-    				
-    				
-    				
-    				
-    				
-    				
-    				
-    				
-    				
-    				
+
+
+
+
+
+
+
+
+
+
