@@ -159,25 +159,26 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 serialized_buffer.insert(serialized_buffer.end(),zeropadding.begin(),zeropadding.end());
                 // Check the length:
                 assert(serialized_buffer.size()==symb_size*gsize);
-                m_kodo_encoder->set_layers(3);
-                m_kodo_encoder->set_generation_size(gsize);
+//                m_kodo_encoder->set_layers(2);
+//                m_kodo_encoder->set_generation_size(gsize);
 
-                uint32_t first_layer = std::ceil(serialized_buffer_table[1]/(float)symb_size);
+//                uint32_t first_layer = std::ceil(serialized_buffer_table[1]/(float)symb_size);
+//                if (first_layer > gsize) first_layer=gsize;
 
-                m_kodo_encoder->set_layer_size(1,first_layer);
-                m_kodo_encoder->set_layer_size(2,gsize-1);
-                m_kodo_encoder->set_layer_size(3,gsize);
-                m_kodo_encoder->set_layer_gamma(1,5);
-                m_kodo_encoder->set_layer_gamma(2,10);
-                m_kodo_encoder->set_layer_gamma(3,100);
-                m_kodo_encoder->set_symbol_size(symb_size);
-//                make_layers(3,gsize,symb_size);
+//                m_kodo_encoder->set_layer_size(1,first_layer);
+//                m_kodo_encoder->set_layer_size(2,gsize);
+////                m_kodo_encoder->set_layer_size(3,gsize);
+//                m_kodo_encoder->set_layer_gamma(1,75);
+//                m_kodo_encoder->set_layer_gamma(2,100);
+////                m_kodo_encoder->set_layer_gamma(3,100);
+//                m_kodo_encoder->set_symbol_size(symb_size);
+                make_layers(4,gsize,symb_size);
                 m_kodo_encoder->new_generation((char*)&serialized_buffer[0]);
 //                std::cout << "Passed generation to encoder. Now what?\n";
                 // End of passing to kodo encoder, now what?
 
                 std::cout << "transmitting generation w ID: "<< 1*m_kodo_encoder->payload_stamp.Generation_ID << std::endl;
-                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 1.50 );
+                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 3. );
 //                std::cout << "created thread to transmit encoded packets\n";
 
                 // Pass to kodo encoder:
@@ -198,11 +199,16 @@ void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_
 
     uint32_t first_layer;
     first_layer = std::ceil(serialized_buffer_table[1]/(float)symb_size);
+
+    if (first_layer < 32) first_layer = 32; //puha
+    else first_layer = calculate_layer_size(first_layer);
+
     if (first_layer > gsize)
     {
         first_layer = gsize;
         nb_layers = 1;
     }
+
     m_kodo_encoder->set_layers(nb_layers);
 
     uint32_t first_gamma = std::ceil(first_layer*100/(float)gsize);
@@ -215,6 +221,8 @@ void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_
     for (uint32_t layer = 2; layer < nb_layers ; layer++)
     {
         uint32_t this_layer_size = p_layer_size*(layer-1)+first_layer;
+        this_layer_size = calculate_layer_size(this_layer_size);
+        if (this_layer_size > gsize) this_layer_size = gsize;
         std::cout << " Layer: " << layer << " has size: " << this_layer_size;
         m_kodo_encoder->set_layer_size(layer,  this_layer_size  );
         m_kodo_encoder->set_layer_gamma(layer, std::ceil(this_layer_size*100/(float)gsize) );
@@ -301,4 +309,10 @@ uint32_t blockbuster::calculate_generation_size_from_gop_size(uint32_t gop_size)
 uint32_t blockbuster::calculate_symbol_size_from_generation_size(uint32_t generation_size)
 {
     return max_packet_size-generation_size/8+1;
+}
+uint32_t blockbuster::calculate_layer_size(uint32_t layer_size)
+{
+    uint32_t addition = 0;
+    if ( layer_size%8 ) addition = (8-layer_size%8);
+    return layer_size + addition;
 }

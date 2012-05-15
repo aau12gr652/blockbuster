@@ -51,6 +51,7 @@ private:
 
     uint32_t calculate_generation_size_from_gop_size(uint32_t gop_size);
     uint32_t calculate_symbol_size_from_generation_size(uint32_t generation_size);
+    uint32_t calculate_layer_size(uint32_t layer_size);
 
 public:
 
