@@ -217,7 +217,9 @@ void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_
 
     std::cout << "First layer: " << first_layer;
 
-    uint32_t p_layer_size = std::ceil( (gsize-first_layer)/(float)(nb_layers-1) );
+	uint32_t p_layer_size;
+	if (nb_layers > 1)
+    	p_layer_size = std::ceil( (gsize-first_layer)/(float)(nb_layers-1) );
     for (uint32_t layer = 2; layer < nb_layers ; layer++)
     {
         uint32_t this_layer_size = p_layer_size*(layer-1)+first_layer;
@@ -268,7 +270,11 @@ void blockbuster::mailbox_thread()
             continue;
         }
         received_data.data = data_array;
-        if (m_kodo_decoder->get_current_generation_id() != hdr->Generation_ID && !m_kodo_decoder->has_finished_decoding()) std::cout << "failed to decode generation " << m_kodo_decoder->get_current_generation_id()*1 << std::endl;
+        if (m_kodo_decoder->get_current_generation_id() != hdr->Generation_ID && !m_kodo_decoder->has_finished_decoding())
+        {
+        	std::cout << "failed to decode generation " << m_kodo_decoder->get_current_generation_id()*1 << std::endl;
+        	std::cout << "Layer 1: " << m_kodo_decoder->is_layer_finish(1)*1 << " Layer 2: " << m_kodo_decoder->is_layer_finish(2)*1 << " Layer 3: " << m_kodo_decoder->is_layer_finish(3)*1 << std::endl;
+        }
         if (hdr->Generation_ID != decoded_generation) decode_return = m_kodo_decoder->decode(hdr,received_data);
         if(m_kodo_decoder->has_finished_decoding() && m_kodo_decoder->get_current_generation_id() != decoded_generation)
         {
@@ -276,7 +282,7 @@ void blockbuster::mailbox_thread()
             std::cout << " Gopsize: " << hdr->Generation_Size << " (symbols) Symbolsize: " << hdr->Symbol_Size << std::endl;
             m_serializer->deserialize_signal(decode_return);
             decoded_generation = m_kodo_decoder->get_current_generation_id();
-        } 
+        }
     }
 }
 
