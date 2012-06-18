@@ -114,8 +114,9 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
 //    Keep track of how to do UEP on the vector (Where to split the shit in windows)
 }
 
-void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_size)
+void blockbuster::make_layers(uint32_t DUMMY, uint32_t gsize, uint32_t symb_size)
 {
+	uint32_t nb_layers = number_of_layers;
     m_kodo_encoder->set_generation_size(gsize);
     m_kodo_encoder->set_symbol_size(symb_size);
 
@@ -125,19 +126,18 @@ void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_
     if (first_layer < 32) first_layer = 32; //puha
     else first_layer = calculate_layer_size(first_layer);
 
+    uint32_t first_gamma = gamma[0];
     if (first_layer > gsize)
     {
         first_layer = gsize;
         nb_layers = 1;
+        first_gamma = 100;
     }
 
     m_kodo_encoder->set_layers(nb_layers);
 
-    uint32_t first_gamma = std::ceil(first_layer*100/(float)gsize);
     m_kodo_encoder->set_layer_size(1,first_layer);
     m_kodo_encoder->set_layer_gamma(1,first_gamma);
-
-    std::cout << "First layer: " << first_layer;
 
     uint32_t p_layer_size;
     if (nb_layers > 1)
@@ -146,15 +146,17 @@ void blockbuster::make_layers(uint32_t nb_layers, uint32_t gsize, uint32_t symb_
     {
         uint32_t this_layer_size = p_layer_size*(layer-1)+first_layer;
         this_layer_size = calculate_layer_size(this_layer_size);
-        if (this_layer_size > gsize) this_layer_size = gsize;
-        std::cout << " Layer: " << layer << " has size: " << this_layer_size;
-        m_kodo_encoder->set_layer_size(layer,  this_layer_size  );
-        m_kodo_encoder->set_layer_gamma(layer, std::ceil(this_layer_size*100/(float)gsize) );
+        if (this_layer_size >= gsize)
+        {
+            nb_layers = layer;
+            break;
+        }
+        m_kodo_encoder->set_layer_size(layer, this_layer_size );
+        m_kodo_encoder->set_layer_gamma(layer, gamma[layer] );
     }
-    std::cout << " gsize: " << gsize << std::endl;
+    m_kodo_encoder->set_layers(nb_layers);
     m_kodo_encoder->set_layer_size(nb_layers,gsize);
     m_kodo_encoder->set_layer_gamma(nb_layers,100);
-//    set_layer_gamma(1,50);
 }
 
 void blockbuster::connect_to_stream()
@@ -162,7 +164,6 @@ void blockbuster::connect_to_stream()
     std::cout << "starting mailbox thread\n";
     mailboxthread = boost::thread( &blockbuster::mailbox_thread, this );
 }
-
 
 void blockbuster::disconnect()
 {
