@@ -25,11 +25,11 @@ extern "C" {
 class blockbuster
 {
 private:
-    postoffice *benjamin_krebs;
+//    postoffice *benjamin_krebs; // Moved to public
     kodo_encoder *m_kodo_encoder;
     kodo_decoder *m_kodo_decoder;
 
-    serializer *m_serializer;
+//    serializer *m_serializer; // Moved to public
     std::vector<uint32_t> serialized_buffer_table;
 
     bool inbound;
@@ -54,7 +54,9 @@ private:
     uint32_t calculate_layer_size(uint32_t layer_size);
 
 public:
-
+    serializer *m_serializer;
+    postoffice *benjamin_krebs;
+    
     blockbuster(bool);
     ~blockbuster();
     boost::signals2::signal<void (AVPacket*)> signal_new_avpacket;
@@ -69,4 +71,6 @@ public:
 
     int number_of_layers;
     int gamma[10];
+    
+    int overhead_percentage;
 };

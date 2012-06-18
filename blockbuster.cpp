@@ -17,6 +17,7 @@ blockbuster::blockbuster(bool inbound)
     m_serializer->signal_new_buffer.connect( boost::bind( &blockbuster::make_avpacket, this,_1,_2) );
 
     max_packet_size = 1450;
+    overhead_percentage = 50;
 }
 
 blockbuster::~blockbuster()
@@ -100,7 +101,7 @@ void blockbuster::prepare_for_kodo_encoder(AVPacket* pkt)
                 // End of passing to kodo encoder, now what?
 
                 std::cout << "transmitting generation w ID: "<< 1*m_kodo_encoder->payload_stamp.Generation_ID << std::endl;
-                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, 3. );
+                transmission_thread = boost::thread( &blockbuster::transmit_generation, this, symb_size, gsize, (1+((float)overhead_percentage)/100) );
 //                std::cout << "created thread to transmit encoded packets\n";
 
                 // Pass to kodo encoder:
