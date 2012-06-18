@@ -66,23 +66,4 @@ public:
     void transmit_generation(uint32_t,uint32_t,float);
 
     void prepare_for_kodo_encoder(AVPacket*);
-
-    // Needs functionality to take care of layers
-
-    void set_layers(uint32_t);
-    uint32_t get_layers();
-
-    void set_layer_size(uint32_t layer_number, uint32_t size);
-    uint32_t get_layer_size(uint32_t layer_number);
-
-    void set_field_size(uint32_t q);
-    uint32_t get_field_size();
-
-    void set_generation_size(uint32_t);
-    uint32_t get_generation_size();
-
-    void set_symbol_size(uint32_t size);
-    uint32_t get_symbol_size();
-
-    void set_layer_gamma(uint32_t layer_number, uint32_t percentage);
 };
