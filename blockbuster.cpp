@@ -153,7 +153,7 @@ void blockbuster::make_layers(uint32_t DUMMY, uint32_t gsize, uint32_t symb_size
             break;
         }
         m_kodo_encoder->set_layer_size(layer, this_layer_size );
-        m_kodo_encoder->set_layer_gamma(layer, gamma[layer] );
+        m_kodo_encoder->set_layer_gamma(layer, gamma[layer - 1] );
     }
     m_kodo_encoder->set_layers(nb_layers);
     m_kodo_encoder->set_layer_size(nb_layers,gsize);
