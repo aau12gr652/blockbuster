@@ -1,6 +1,6 @@
 #include "blockbuster.hpp"
 
-blockbuster::blockbuster(bool inbound)
+blockbuster::blockbuster(bool inbound, int port)
 {
 	char port_string[6];
 	sprintf(port_string, "%d", port);

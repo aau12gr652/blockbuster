@@ -73,6 +73,4 @@ public:
     int gamma[10];
 
     int overhead_percentage;
-
-    int port;
 };
