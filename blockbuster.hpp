@@ -56,7 +56,7 @@ private:
 public:
     serializer *m_serializer;
     postoffice *benjamin_krebs;
-    
+
     blockbuster(bool);
     ~blockbuster();
     boost::signals2::signal<void (AVPacket*)> signal_new_avpacket;
@@ -71,6 +71,8 @@ public:
 
     int number_of_layers;
     int gamma[10];
-    
+
     int overhead_percentage;
+
+    int port;
 };

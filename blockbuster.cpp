@@ -2,15 +2,18 @@
 
 blockbuster::blockbuster(bool inbound)
 {
+	char port_string[6];
+	sprintf(port_string, "%d", port);
+
     if(inbound)
     {
         m_kodo_decoder = new kodo_decoder();
-        benjamin_krebs = new postoffice("11000",1);
+        benjamin_krebs = new postoffice(port_string,1);
 //        benjamin_krebs->startThread();
     }
     else {
         m_kodo_encoder = new kodo_encoder();
-        benjamin_krebs = new postoffice("11000", "255.255.255.255");
+        benjamin_krebs = new postoffice(port_string, "255.255.255.255");
     }
     this->inbound = inbound;
     m_serializer = new serializer();
