@@ -57,7 +57,7 @@ public:
     serializer *m_serializer;
     postoffice *benjamin_krebs;
 
-    blockbuster(bool);
+    blockbuster(bool, int);
     ~blockbuster();
     boost::signals2::signal<void (AVPacket*)> signal_new_avpacket;
 
